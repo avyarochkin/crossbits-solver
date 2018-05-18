@@ -1,0 +1,10 @@
+.testcase {
+  font-family: monospace;
+}
+.testcase td:nth-child(2) {
+  background-color: #ccc;
+  text-align: right;
+}
+.testcase td:nth-child(3) {
+  background-color: #eee;
+}

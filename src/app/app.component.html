@@ -1,0 +1,8 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<table>
+  <tr *ngFor="let case of testCases; let i = index" class="testcase">
+    <td><button (click)="solve(i)">Solve</button></td>
+    <td>{{case.hintLine}}</td>
+    <td>{{prettify(case.boardData)}}</td>
+  </tr>
+</table>
