@@ -120,24 +120,45 @@ export class Solver {
             return solutionApplicable
         }
 
-        // main function
+        function applySolutionToBoard() {
+            // TODO
+        }
+
+        // MARK: main function
+
+        let giveUp = false
+        let time = performance.now()
+
         if (!hintLength) return false
 
         createDataBlocks()
 
         if (buildVariantStartingAt(0, 0)) {
-            //debugger
-            while(buildNextVariant()) {
-                if (!applyVariantToSolution()) break
+            let variantsFound = 1
+            while(!giveUp && buildNextVariant()) {
+                variantsFound++
+                giveUp = !applyVariantToSolution() || (performance.now() - time > 60000)
             }
-            //applySolutionToBoard()
+            if (!giveUp) applySolutionToBoard()
+
+            // logging stats
+            time = (performance.now() - time) / 1000
+            if (giveUp) {
+                console.log(`Given up after ${variantsFound.toLocaleString()} variant(s) in ${time.toFixed(3)}s`)
+            } else if (variantsFound > 0) {
+                console.log(`${variantsFound.toLocaleString()} variant(s) found in ${time.toFixed(3)}s`)
+            } else {
+                console.warn(`No variants found in ${time.toFixed(3)}s`)
+            }
         } else {
-            console.warn('No variants found.')
+            // could not build first variant
+            console.warn(`No variants found`)
         }
 
     } // solveLine
 
 }
+
 
 declare global {
     interface Array<T> {
