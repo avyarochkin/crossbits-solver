@@ -89,6 +89,8 @@ export class Solver {
         }
 
         function buildNextVariant() {
+            // if not initiliazed, build the first variant
+            if (!variant[0]) return buildVariantStartingAt(0, 0)
             // try to shift a piece one cell forward starting with the last one
             for (let hintIndex = hintLength - 1; hintIndex >= 0; hintIndex--) {
                 if (buildVariantStartingAt(hintIndex, variant[hintIndex].offset + 1)) return true
@@ -101,14 +103,14 @@ export class Solver {
             let varIndex = 0
             let solutionApplicable = false
             for (let solIndex = 0; solIndex < dataLength; solIndex++) {
-                let solItem = solution[solIndex] === undefined ? BOARD_CELL.NIL : solution[solIndex]
+                let solItem = solution[solIndex]
                 const varItem = variant[varIndex]
                 if (varIndex >= hintLength || solIndex < varItem.offset) {
                     // apply to cells outside of variant pieces
-                    if (solItem !== BOARD_CELL.OFF) solItem = BOARD_CELL.NIL
+                    solItem = (solItem === undefined || solItem === BOARD_CELL.OFF) ? BOARD_CELL.OFF : BOARD_CELL.NIL
                 } else if (solIndex < varItem.offset + varItem.length) {
                     // apply to cells inside the variant pieces
-                    if (solItem !== BOARD_CELL.ON) solItem = BOARD_CELL.NIL
+                    solItem = (solItem === undefined || solItem === BOARD_CELL.ON) ? BOARD_CELL.ON : BOARD_CELL.NIL
                     // moving to the next piece
                     if (solIndex === varItem.offset + varItem.length - 1) varIndex++
                 }
@@ -133,26 +135,21 @@ export class Solver {
 
         createDataBlocks()
 
-        if (buildVariantStartingAt(0, 0)) {
-            let variantsFound = 1
-            while (!giveUp && buildNextVariant()) {
-                variantsFound++
-                giveUp = !applyVariantToSolution() || (performance.now() - time > 60000)
-            }
-            if (!giveUp) applySolutionToBoard()
+        let variantsFound = 0
+        while (!giveUp && buildNextVariant()) {
+            variantsFound++
+            giveUp = !applyVariantToSolution() || (performance.now() - time > 60000)
+        }
+        if (!giveUp) applySolutionToBoard()
 
-            // logging stats
-            time = (performance.now() - time) / 1000
-            if (giveUp) {
-                console.log(`Given up after ${variantsFound.toLocaleString()} variant(s) in ${time.toFixed(3)}s`)
-            } else if (variantsFound > 0) {
-                console.log(`${variantsFound.toLocaleString()} variant(s) found in ${time.toFixed(3)}s`)
-            } else {
-                console.warn(`No variants found in ${time.toFixed(3)}s`)
-            }
+        // logging stats
+        time = (performance.now() - time) / 1000
+        if (giveUp) {
+            console.log(`Given up after ${variantsFound.toLocaleString()} variant(s) in ${time.toFixed(3)}s`)
+        } else if (variantsFound > 0) {
+            console.log(`${variantsFound.toLocaleString()} variant(s) found in ${time.toFixed(3)}s`)
         } else {
-            // could not build first variant
-            console.warn(`No variants found`)
+            console.warn(`No variants found in ${time.toFixed(3)}s`)
         }
 
     } // solveLine
