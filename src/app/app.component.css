@@ -1,10 +1,13 @@
-.testcase {
+.testcase td button {
+  background-color: #ddd;
+  border: none;
+  text-align: right;
+  padding: 1px 5px;
+  margin: 0;
   font-family: monospace;
 }
-.testcase td:nth-child(2) {
+.testcase td:first-child {
   background-color: #ccc;
-  text-align: right;
-}
-.testcase td:nth-child(3) {
-  background-color: #eee;
+  padding: 1px 5px;
+  font-family: monospace;
 }
