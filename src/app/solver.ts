@@ -56,13 +56,19 @@ export class Solver {
             // console.log(dataBlocks)
         }
         /**/
-        function buildVariantStartingAt(startIndex: number, offset: number): boolean {
+        enum VARIANT {
+            FOUND,
+            DIRTY,
+            NOT_FOUND
+        }
+
+        function buildVariantStartingAt(startIndex: number, offset: number): VARIANT {
             for (let hintIndex = startIndex; hintIndex < hintLength; hintIndex++) {
                 const item = self.hints[lineIndex][hintIndex]
                 let offsetEnd = offset + item.hint - 1
 
                 do {
-                    if (offsetEnd >= dataLength) return false
+                    if (offsetEnd >= dataLength) return VARIANT.NOT_FOUND
                     const preStartBlock = dataBlocks[offset - 1]
                     const startBlock = dataBlocks[offset]
                     const postEndBlock = dataBlocks[offsetEnd + 1]
@@ -83,23 +89,27 @@ export class Solver {
                 offset += item.hint + 1
                 // endIndex will update with the next iteration
             }
+            // check if variant is DIRTY
+            // debugger
             console.log('Variant: ' + variant.toCompactString())
             // console.log(variant)
-            return true
+            return VARIANT.FOUND
         }
 
-        function buildNextVariant() {
+        function buildNextVariant(): VARIANT {
             // if not initiliazed, build the first variant
             if (!variant[0]) return buildVariantStartingAt(0, 0)
             // try to shift a piece one cell forward starting with the last one
             for (let hintIndex = hintLength - 1; hintIndex >= 0; hintIndex--) {
-                if (buildVariantStartingAt(hintIndex, variant[hintIndex].offset + 1)) return true
+                let varState = buildVariantStartingAt(hintIndex, variant[hintIndex].offset + 1)
+                // accept found variants, skip dirty variants
+                if (varState === VARIANT.FOUND) return varState
             }
             // all pieces are shifted to their last position - cannot build a new variant
-            return false
+            return VARIANT.NOT_FOUND
         }
 
-        function applyVariantToSolution() {
+        function applyVariantToSolution(): boolean {
             let varIndex = 0
             let solutionApplicable = false
             for (let solIndex = 0; solIndex < dataLength; solIndex++) {
@@ -136,10 +146,12 @@ export class Solver {
         createDataBlocks()
 
         let variantsFound = 0
-        while (!giveUp && buildNextVariant()) {
-            variantsFound++
+        do {
+            const varState = buildNextVariant()
+            if (varState === VARIANT.NOT_FOUND) break
+            if (varState === VARIANT.FOUND) variantsFound++
             giveUp = !applyVariantToSolution() || (performance.now() - time > 60000)
-        }
+        } while (!giveUp)
         if (!giveUp) applySolutionToBoard()
 
         // logging stats
